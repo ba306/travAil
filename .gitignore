@@ -172,3 +172,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# pass
+e_sif_json.py.zip
+e_sif.json
