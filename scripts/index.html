@@ -1,0 +1,29 @@
+<!-- templates/index.html -->
+<form method="POST">
+    {% csrf_token %}
+    <label for="start_date">Start Date:</label>
+    <input type="date" id="start_date" name="start_date">
+
+    <label for="end_date">End Date:</label>
+    <input type="date" id="end_date" name="end_date">
+
+    <label for="num_adults">Number of Adults:</label>
+    <input type="number" id="num_adults" name="num_adults" min="1" max="10">
+
+    <label for="max_price">Max Price:</label>
+    <input type="number" id="max_price" name="max_price" min="0">
+
+    <label for="ne_lat">NE Latitude:</label>
+    <input type="number" step="any" id="ne_lat" name="ne_lat">
+
+    <label for="ne_lng">NE Longitude:</label>
+    <input type="number" step="any" id="ne_lng" name="ne_lng">
+
+    <label for="sw_lat">SW Latitude:</label>
+    <input type="number" step="any" id="sw_lat" name="sw_lat">
+
+    <label for="sw_lng">SW Longitude:</label>
+    <input type="number" step="any" id="sw_lng" name="sw_lng">
+
+    <button type="submit">Submit</button>
+</form>
