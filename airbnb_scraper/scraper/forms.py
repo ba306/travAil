@@ -7,7 +7,10 @@ class SearchForm(forms.Form):
     num_adults = forms.IntegerField(min_value=1, max_value=10)
     max_price = forms.IntegerField(min_value=0)
     email = forms.CharField(validators=[EmailValidator()], widget=forms.EmailInput(attrs={'placeholder': 'Enter your email'}))
-    ne_lat = forms.FloatField(widget=forms.HiddenInput())  # Hidden field
-    ne_lng = forms.FloatField(widget=forms.HiddenInput())  # Hidden field
-    sw_lat = forms.FloatField(widget=forms.HiddenInput())  # Hidden field
-    sw_lng = forms.FloatField(widget=forms.HiddenInput())  # Hidden field
+    ne_lat = forms.FloatField(widget=forms.HiddenInput())
+    ne_lng = forms.FloatField(widget=forms.HiddenInput())
+    sw_lat = forms.FloatField(widget=forms.HiddenInput())
+    sw_lng = forms.FloatField(widget=forms.HiddenInput())
+    map_center_lat = forms.FloatField(widget=forms.HiddenInput())  # New field
+    map_center_lng = forms.FloatField(widget=forms.HiddenInput())  # New field
+    map_zoom = forms.FloatField(widget=forms.HiddenInput())        # New field

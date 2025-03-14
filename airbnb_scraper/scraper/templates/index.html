@@ -82,36 +82,38 @@
 
     <div class="container">
         <!-- Form container -->
-<div class="form-container">
-    <form method="POST">
-        {% csrf_token %}
+<form method="POST">
+    {% csrf_token %}
 
-        <label for="start_date">Start Date:</label>
-        {{ form.start_date }}
+    <!-- Existing form fields -->
+    <label for="start_date">Start Date:</label>
+    {{ form.start_date }}
 
-        <label for="end_date">End Date:</label>
-        {{ form.end_date }}
+    <label for="end_date">End Date:</label>
+    {{ form.end_date }}
 
-        <label for="num_adults">Number of Adults:</label>
-        {{ form.num_adults }}
+    <label for="num_adults">Number of Adults:</label>
+    {{ form.num_adults }}
 
-        <label for="max_price">Max Price (€):</label>
-        {{ form.max_price }}
+    <label for="max_price">Max Price (€):</label>
+    {{ form.max_price }}
 
-        <!-- Add email input -->
-        <label for="email">Email Address:</label>
-        {{ form.email }}
+    <label for="email">Email Address:</label>
+    {{ form.email }}
 
-        <!-- Hidden fields for coordinates (will be updated by the map) -->
-        <input type="hidden" id="id_ne_lat" name="ne_lat">
-        <input type="hidden" id="id_ne_lng" name="ne_lng">
-        <input type="hidden" id="id_sw_lat" name="sw_lat">
-        <input type="hidden" id="id_sw_lng" name="sw_lng">
+    <!-- Hidden fields for coordinates (updated by the map) -->
+    <input type="hidden" id="id_ne_lat" name="ne_lat">
+    <input type="hidden" id="id_ne_lng" name="ne_lng">
+    <input type="hidden" id="id_sw_lat" name="sw_lat">
+    <input type="hidden" id="id_sw_lng" name="sw_lng">
 
-        <button type="submit">Search</button>
-    </form>
-</div>
+    <!-- Hidden fields for map center and zoom level -->
+    <input type="hidden" id="id_map_center_lat" name="map_center_lat">
+    <input type="hidden" id="id_map_center_lng" name="map_center_lng">
+    <input type="hidden" id="id_map_zoom" name="map_zoom">
 
+    <button type="submit">Search</button>
+</form>
         <!-- Map container -->
         <div id="map-container">
             <div id="map"></div>
@@ -135,21 +137,35 @@
     {% endif %}
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        var map = L.map('map').setView([{{ form.ne_lat.value|default:0 }}, {{ form.ne_lng.value|default:0 }}], 13);
+<script>
+    // Initialize the map with saved state or defaults
+    var mapCenterLat = parseFloat("{{ form.map_center_lat.value|default:config.NE_LAT }}");
+    var mapCenterLng = parseFloat("{{ form.map_center_lng.value|default:config.NE_LNG }}");
+    var mapZoom = parseFloat("{{ form.map_zoom.value|default:13 }}");
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+    var map = L.map('map').setView([mapCenterLat, mapCenterLng], mapZoom);
 
-        map.on('moveend', function() {
-            var bounds = map.getBounds();
-            document.getElementById('id_ne_lat').value = bounds.getNorthEast().lat;
-            document.getElementById('id_ne_lng').value = bounds.getNorthEast().lng;
-            document.getElementById('id_sw_lat').value = bounds.getSouthWest().lat;
-            document.getElementById('id_sw_lng').value = bounds.getSouthWest().lng;
-        });
-    </script>
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 
+    // Update hidden fields when the map is moved or zoomed
+    map.on('moveend', function() {
+        var center = map.getCenter();
+        document.getElementById('id_map_center_lat').value = center.lat;
+        document.getElementById('id_map_center_lng').value = center.lng;
+        document.getElementById('id_map_zoom').value = map.getZoom();
+
+        var bounds = map.getBounds();
+        document.getElementById('id_ne_lat').value = bounds.getNorthEast().lat;
+        document.getElementById('id_ne_lng').value = bounds.getNorthEast().lng;
+        document.getElementById('id_sw_lat').value = bounds.getSouthWest().lat;
+        document.getElementById('id_sw_lng').value = bounds.getSouthWest().lng;
+    });
+
+    map.on('zoomend', function() {
+        document.getElementById('id_map_zoom').value = map.getZoom();
+    });
+</script>
 </body>
 </html>
