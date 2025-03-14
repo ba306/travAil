@@ -1,11 +1,9 @@
 from django.shortcuts import render
-from django.http import HttpResponse
 from .forms import SearchForm
 from .airbnb_scrape import set_up_driver, scrape_listings
 from .emailer import send_email
 from .utils import load_credentials, load_previous_urls, save_urls, normalize_url
-from . import config
-from datetime import datetime
+from . import config  # Import the config module
 
 def index(request):
     if request.method == 'POST':
@@ -20,7 +18,7 @@ def index(request):
             ne_lng = form.cleaned_data['ne_lng']
             sw_lat = form.cleaned_data['sw_lat']
             sw_lng = form.cleaned_data['sw_lng']
-            receiver_email = form.cleaned_data['email']  # Get email from the form
+            email = form.cleaned_data['email']  # Get email from the form
 
             # Construct URL
             monthly_length = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
@@ -43,14 +41,14 @@ def index(request):
                 if new_urls:
                     # Send email if new URLs are found
                     sender_email, sender_password = load_credentials()
-                    send_email(new_urls, sender_email, sender_password, receiver_email)  # Use the email from the form
+                    send_email(new_urls, sender_email, sender_password, email)
 
                     # Save new URLs
                     save_urls(current_urls)
 
-                    return render(request, 'index.html', {'form': form, 'new_urls': new_urls})
+                    return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config})
                 else:
-                    return render(request, 'index.html', {'form': form, 'message': "No new listings found."})
+                    return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config})
 
             finally:
                 driver.quit()
@@ -66,6 +64,10 @@ def index(request):
             'ne_lng': config.NE_LNG,
             'sw_lat': config.SW_LAT,
             'sw_lng': config.SW_LNG,
+            'map_center_lat': config.NE_LAT,  # Default center latitude
+            'map_center_lng': config.NE_LNG,  # Default center longitude
+            'map_zoom': 13,                   # Default zoom level
         })
 
-    return render(request, 'index.html', {'form': form})
+    # Pass the config variable to the template context
+    return render(request, 'index.html', {'form': form, 'config': config})
