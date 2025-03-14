@@ -1,16 +1,13 @@
 # 🏡 TravAIl ✈️
-
-<div style="display: flex; justify-content: space-between; align-items: center;">
-  <div style="flex: 1;">
-    ## 📌 Overview  
-    **TravAIl** is a prototype/ongoing project Airbnb scraper that will expand to scrape other hotel databases and flight prices.  
+## 📌 Overview  
+**TravAIl** is a prototype/ongoing project Airbnb scraper that will expand to scrape other hotel databases and flight prices.  
     The goal is to help users find the **cheapest time to travel** by:
 
-    - 🏠 **Scraping Airbnb listings** automatically
-    - 🏨 **Fetching hotel prices** from multiple sources
-    - ✈️ **Tracking flight prices** in real-time
-    - 📈 **Predicting cheap travel times** based on historical data
-  </div>
+    - 🏠 Scraping Airbnb listings automatically
+    - 🏨 Fetching hotel prices from multiple sources
+    - ✈️ Tracking flight prices in real-time
+    - 📈 Predicting cheap travel times based on historical data
+
   <div style="flex: 0 0 50%; display: flex; justify-content: center;">
     <img src="https://github.com/ba306/travAil/raw/main/snapshots/app_screenshot.png" alt="App Screenshot" width="700" />
   </div>
