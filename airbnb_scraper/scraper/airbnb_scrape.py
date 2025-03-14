@@ -13,7 +13,8 @@ def set_up_driver():
     options.add_argument("--headless")  # Ensure the browser runs in headless mode
     options.add_argument("--disable-gpu")  # Optional: to avoid GPU usage issues
     options.add_argument("--no-sandbox")  # Optional: helps avoid some sandbox issues on Linux
-
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--blink-settings=imagesEnabled=false")
     options.add_argument("--start-maximized")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
