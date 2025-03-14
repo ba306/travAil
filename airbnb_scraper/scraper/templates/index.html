@@ -82,37 +82,35 @@
 
     <div class="container">
         <!-- Form container -->
-        <div class="form-container">
-            <form method="POST">
-                {% csrf_token %}
+<div class="form-container">
+    <form method="POST">
+        {% csrf_token %}
 
-                <label for="start_date">Start Date:</label>
-                {{ form.start_date }}
+        <label for="start_date">Start Date:</label>
+        {{ form.start_date }}
 
-                <label for="end_date">End Date:</label>
-                {{ form.end_date }}
+        <label for="end_date">End Date:</label>
+        {{ form.end_date }}
 
-                <label for="num_adults">Number of Adults:</label>
-                {{ form.num_adults }}
+        <label for="num_adults">Number of Adults:</label>
+        {{ form.num_adults }}
 
-                <label for="max_price">Max Price ($):</label>
-                {{ form.max_price }}
+        <label for="max_price">Max Price (€):</label>
+        {{ form.max_price }}
 
-                <label for="ne_lat">NE Latitude:</label>
-                {{ form.ne_lat }}
+        <!-- Add email input -->
+        <label for="email">Email Address:</label>
+        {{ form.email }}
 
-                <label for="ne_lng">NE Longitude:</label>
-                {{ form.ne_lng }}
+        <!-- Hidden fields for coordinates (will be updated by the map) -->
+        <input type="hidden" id="id_ne_lat" name="ne_lat">
+        <input type="hidden" id="id_ne_lng" name="ne_lng">
+        <input type="hidden" id="id_sw_lat" name="sw_lat">
+        <input type="hidden" id="id_sw_lng" name="sw_lng">
 
-                <label for="sw_lat">SW Latitude:</label>
-                {{ form.sw_lat }}
-
-                <label for="sw_lng">SW Longitude:</label>
-                {{ form.sw_lng }}
-
-                <button type="submit">Search</button>
-            </form>
-        </div>
+        <button type="submit">Search</button>
+    </form>
+</div>
 
         <!-- Map container -->
         <div id="map-container">

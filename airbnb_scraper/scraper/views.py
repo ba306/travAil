@@ -20,6 +20,7 @@ def index(request):
             ne_lng = form.cleaned_data['ne_lng']
             sw_lat = form.cleaned_data['sw_lat']
             sw_lng = form.cleaned_data['sw_lng']
+            receiver_email = form.cleaned_data['email']  # Get email from the form
 
             # Construct URL
             monthly_length = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
@@ -42,8 +43,7 @@ def index(request):
                 if new_urls:
                     # Send email if new URLs are found
                     sender_email, sender_password = load_credentials()
-                    receiver_email = "georgesque360@gmail.com"  # You can set this dynamically or store it in your config
-                    send_email(new_urls, sender_email, sender_password, receiver_email)
+                    send_email(new_urls, sender_email, sender_password, receiver_email)  # Use the email from the form
 
                     # Save new URLs
                     save_urls(current_urls)
