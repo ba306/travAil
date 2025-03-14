@@ -38,9 +38,11 @@ def index(request):
 
                 new_urls = [url for url, normalized_url in zip(current_urls, normalized_current_urls) if normalized_url not in normalized_previous_urls]
 
+                # Load credentials
+                sender_email, sender_password = load_credentials()
+
                 if new_urls:
                     # Send email if new URLs are found
-                    sender_email, sender_password = load_credentials()
                     send_email(new_urls, sender_email, sender_password, email)
 
                     # Save new URLs
@@ -48,6 +50,11 @@ def index(request):
 
                     return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config})
                 else:
+                    # Send email if no new listings are found
+                    subject = "No New Airbnb Listings Found"
+                    body = "No new listings were found during the latest search."
+                    send_email([body], sender_email, sender_password, email)
+
                     return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config})
 
             finally:

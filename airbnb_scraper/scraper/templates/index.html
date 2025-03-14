@@ -74,7 +74,7 @@
             text-decoration: underline;
         }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
 
@@ -136,7 +136,7 @@
     </div>
     {% endif %}
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     // Initialize the map with saved state or defaults
     var mapCenterLat = parseFloat("{{ form.map_center_lat.value|default:config.NE_LAT }}");
