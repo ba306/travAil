@@ -177,3 +177,7 @@ cython_debug/
 # pass
 e_sif_json.py.zip
 e_sif.json
+
+# html and pictures
+screenshot.png
+page_source.html
