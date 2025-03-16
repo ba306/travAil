@@ -7,7 +7,6 @@ from .models import Search, SearchResult
 from . import config
 from datetime import datetime
 
-
 def index(request):
     if request.method == 'POST':
         form = SearchForm(request.POST)
@@ -36,6 +35,15 @@ def index(request):
 
                 # Check if no listings were found
                 if not current_urls:
+                    # Load credentials
+                    sender_email, sender_password = load_credentials()
+
+                    if sender_email and sender_password:
+                        # Send email if no listings are found
+                        subject = "No Airbnb Listings Found"
+                        body = "No listings were found for the given search parameters."
+                        send_email([body], sender_email, sender_password, email)
+
                     return render(request, 'index.html', {'form': form, 'message': "No listings found for the given dates.", 'config': config})
 
                 # Normalize URLs
