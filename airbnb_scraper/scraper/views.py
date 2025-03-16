@@ -1,3 +1,4 @@
+import time
 from django.shortcuts import render
 from .forms import SearchForm
 from .airbnb_scrape import set_up_driver, scrape_listings
@@ -9,6 +10,7 @@ from datetime import datetime
 
 def index(request):
     if request.method == 'POST':
+        start_time = time.time()  # Start timing
         form = SearchForm(request.POST)
         if form.is_valid():
             # Get form data
@@ -31,7 +33,11 @@ def index(request):
 
             try:
                 # Scrape listings
+                scrape_start_time = time.time()  # Start timing for scraping
                 current_urls = scrape_listings(driver, url, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+                scrape_end_time = time.time()  # End timing for scraping
+                scrape_duration = scrape_end_time - scrape_start_time
+                print(f"Scraping took {scrape_duration:.2f} seconds")
 
                 # Check if no listings were found
                 if not current_urls:
@@ -84,13 +90,19 @@ def index(request):
                     if new_urls:
                         # Send email if new URLs are found
                         send_email(new_urls, sender_email, sender_password, email)
-                        return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config})
+                        end_time = time.time()  # End timing
+                        total_duration = end_time - start_time
+                        print(f"Total request processing time: {total_duration:.2f} seconds")
+                        return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config, 'scrape_duration': scrape_duration, 'total_duration': total_duration})
                     else:
                         # Send email if no new listings are found
                         subject = "No New Airbnb Listings Found"
                         body = "No new listings were found during the latest search."
                         send_email([body], sender_email, sender_password, email)
-                        return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config})
+                        end_time = time.time()  # End timing
+                        total_duration = end_time - start_time
+                        print(f"Total request processing time: {total_duration:.2f} seconds")
+                        return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config, 'scrape_duration': scrape_duration, 'total_duration': total_duration})
                 else:
                     return render(request, 'index.html', {'form': form, 'error': "Email credentials not found.", 'config': config})
 
