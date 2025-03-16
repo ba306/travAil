@@ -13,11 +13,11 @@ def load_credentials():
         return None, None
 
 # Load previously fetched URLs
-def load_previous_urls(file_path="previous_urls.json"):
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            return json.load(f)
-    return []
+def load_previous_urls():
+    previous_urls = []
+    for search in SearchHistory.objects.all():
+        previous_urls.extend(search.results)
+    return previous_urls
 
 # Save URLs to a file
 def save_urls(urls, file_path="previous_urls.json"):
