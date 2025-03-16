@@ -1,29 +1,40 @@
-<!-- templates/index.html -->
-<form method="POST">
-    {% csrf_token %}
-    <label for="start_date">Start Date:</label>
-    <input type="date" id="start_date" name="start_date">
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Airbnb Scraper</title>
+</head>
+<body>
+    <h1>Airbnb Scraper</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Search</button>
+    </form>
 
-    <label for="end_date">End Date:</label>
-    <input type="date" id="end_date" name="end_date">
+    {% if new_urls %}
+        <h2>New Listings Found:</h2>
+        <ul>
+            {% for url in new_urls %}
+                <li><a href="{{ url }}" target="_blank">{{ url }}</a></li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-    <label for="num_adults">Number of Adults:</label>
-    <input type="number" id="num_adults" name="num_adults" min="1" max="10">
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
 
-    <label for="max_price">Max Price:</label>
-    <input type="number" id="max_price" name="max_price" min="0">
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
 
-    <label for="ne_lat">NE Latitude:</label>
-    <input type="number" step="any" id="ne_lat" name="ne_lat">
+    {% if scrape_duration %}
+        <p>Scraping took: {{ scrape_duration|floatformat:2 }} seconds</p>
+    {% endif %}
 
-    <label for="ne_lng">NE Longitude:</label>
-    <input type="number" step="any" id="ne_lng" name="ne_lng">
-
-    <label for="sw_lat">SW Latitude:</label>
-    <input type="number" step="any" id="sw_lat" name="sw_lat">
-
-    <label for="sw_lng">SW Longitude:</label>
-    <input type="number" step="any" id="sw_lng" name="sw_lng">
-
-    <button type="submit">Submit</button>
-</form>
+    {% if total_duration %}
+        <p>Total request processing time: {{ total_duration|floatformat:2 }} seconds</p>
+    {% endif %}
+</body>
+</html>

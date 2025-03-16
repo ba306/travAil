@@ -16,6 +16,9 @@ def set_up_driver():
     options.add_argument("--disable-blink-features=AutomationControlled")  # Disable automation control
     options.add_experimental_option("excludeSwitches", ["enable-automation"])  # Disable automation flags
     options.add_experimental_option('useAutomationExtension', False)  # Disable automation extension
+    options.add_argument("--disable-images")
+    options.add_argument("--disable-javascript")
+    options.add_argument("--disable-css")
 
     driver = webdriver.Chrome(options=options)
     return driver
