@@ -2,8 +2,11 @@ from django.shortcuts import render
 from .forms import SearchForm
 from .airbnb_scrape import set_up_driver, scrape_listings
 from .emailer import send_email
-from .utils import load_credentials, load_previous_urls, save_urls, normalize_url
-from . import config  # Import the config module
+from .utils import load_credentials, normalize_url
+from .models import Search, SearchResult
+from . import config
+from datetime import datetime
+
 
 def index(request):
     if request.method == 'POST':
@@ -18,7 +21,7 @@ def index(request):
             ne_lng = form.cleaned_data['ne_lng']
             sw_lat = form.cleaned_data['sw_lat']
             sw_lng = form.cleaned_data['sw_lng']
-            email = form.cleaned_data['email']  # Get email from the form
+            email = form.cleaned_data['email']
 
             # Construct URL
             monthly_length = (end_date.year - start_date.year) * 12 + (end_date.month - start_date.month)
@@ -31,31 +34,62 @@ def index(request):
                 # Scrape listings
                 current_urls = scrape_listings(driver, url, start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
-                # Load previous URLs and compare
-                previous_urls = load_previous_urls()
-                normalized_current_urls = [normalize_url(url) for url in current_urls]
-                normalized_previous_urls = [normalize_url(url) for url in previous_urls]
+                # Check if no listings were found
+                if not current_urls:
+                    return render(request, 'index.html', {'form': form, 'message': "No listings found for the given dates.", 'config': config})
 
-                new_urls = [url for url, normalized_url in zip(current_urls, normalized_current_urls) if normalized_url not in normalized_previous_urls]
+                # Normalize URLs
+                normalized_current_urls = [normalize_url(url) for url in current_urls]
+
+                # Save the search
+                search = Search(
+                    email=email,
+                    start_date=start_date,
+                    end_date=end_date,
+                    num_adults=num_adults,
+                    max_price=max_price,
+                    ne_lat=ne_lat,
+                    ne_lng=ne_lng,
+                    sw_lat=sw_lat,
+                    sw_lng=sw_lng,
+                )
+                search.save()
+                print("Current Results:", list(normalized_current_urls))
+
+                # Load previous results for the same user (excluding the current search)
+                previous_results = SearchResult.objects.filter(search__email=email).exclude(search=search).values_list('normalized_url', flat=True)
+                print("Previous Results:", list(previous_results))
+
+                # Find new URLs
+                new_urls = [url for url in normalized_current_urls if url not in previous_results]
+                print("New URLs:", new_urls)
+
+                # Save the results (skip duplicates for the same user)
+                for url, normalized_url in zip(current_urls, normalized_current_urls):
+                    if not SearchResult.objects.filter(search__email=email, normalized_url=normalized_url).exists():
+                        SearchResult.objects.create(search=search, url=url, normalized_url=normalized_url)
 
                 # Load credentials
                 sender_email, sender_password = load_credentials()
 
-                if new_urls:
-                    # Send email if new URLs are found
-                    send_email(new_urls, sender_email, sender_password, email)
-
-                    # Save new URLs
-                    save_urls(current_urls)
-
-                    return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config})
+                if sender_email and sender_password:
+                    if new_urls:
+                        # Send email if new URLs are found
+                        send_email(new_urls, sender_email, sender_password, email)
+                        return render(request, 'index.html', {'form': form, 'new_urls': new_urls, 'config': config})
+                    else:
+                        # Send email if no new listings are found
+                        subject = "No New Airbnb Listings Found"
+                        body = "No new listings were found during the latest search."
+                        send_email([body], sender_email, sender_password, email)
+                        return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config})
                 else:
-                    # Send email if no new listings are found
-                    subject = "No New Airbnb Listings Found"
-                    body = "No new listings were found during the latest search."
-                    send_email([body], sender_email, sender_password, email)
+                    return render(request, 'index.html', {'form': form, 'error': "Email credentials not found.", 'config': config})
 
-                    return render(request, 'index.html', {'form': form, 'message': "No new listings found.", 'config': config})
+            except Exception as e:
+                # Handle the error (e.g., log it or show a user-friendly message)
+                print(f"Error: {e}")
+                return render(request, 'index.html', {'form': form, 'error': "An error occurred while processing your request."})
 
             finally:
                 driver.quit()
@@ -76,5 +110,4 @@ def index(request):
             'map_zoom': 13,                   # Default zoom level
         })
 
-    # Pass the config variable to the template context
     return render(request, 'index.html', {'form': form, 'config': config})
