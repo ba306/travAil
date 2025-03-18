@@ -29,7 +29,7 @@
             display: block;
             margin: 5px 0;
         }
-        input[type="date"], input[type="number"], input[type="text"] {
+        input[type="date"], input[type="number"], input[type="text"], select {
             padding: 8px;
             margin: 5px 0;
             width: 100%;
@@ -74,7 +74,7 @@
             text-decoration: underline;
         }
     </style>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body>
 
@@ -82,38 +82,46 @@
 
     <div class="container">
         <!-- Form container -->
-<form method="POST">
-    {% csrf_token %}
+        <form method="POST">
+            {% csrf_token %}
 
-    <!-- Existing form fields -->
-    <label for="start_date">Start Date:</label>
-    {{ form.start_date }}
+            <!-- Existing form fields -->
+            <label for="start_date">Start Date:</label>
+            {{ form.start_date }}
 
-    <label for="end_date">End Date:</label>
-    {{ form.end_date }}
+            <label for="end_date">End Date:</label>
+            {{ form.end_date }}
 
-    <label for="num_adults">Number of Adults:</label>
-    {{ form.num_adults }}
+            <label for="num_adults">Number of Adults:</label>
+            {{ form.num_adults }}
 
-    <label for="max_price">Max Price (€):</label>
-    {{ form.max_price }}
+            <label for="max_price">Max Price (€):</label>
+            {{ form.max_price }}
 
-    <label for="email">Email Address:</label>
-    {{ form.email }}
+            <label for="email">Email Address:</label>
+            {{ form.email }}
 
-    <!-- Hidden fields for coordinates (updated by the map) -->
-    <input type="hidden" id="id_ne_lat" name="ne_lat">
-    <input type="hidden" id="id_ne_lng" name="ne_lng">
-    <input type="hidden" id="id_sw_lat" name="sw_lat">
-    <input type="hidden" id="id_sw_lng" name="sw_lng">
+            <!-- New fields for frequency -->
+            <label for="frequency_interval">Frequency Interval:</label>
+            {{ form.frequency_interval }}
 
-    <!-- Hidden fields for map center and zoom level -->
-    <input type="hidden" id="id_map_center_lat" name="map_center_lat">
-    <input type="hidden" id="id_map_center_lng" name="map_center_lng">
-    <input type="hidden" id="id_map_zoom" name="map_zoom">
+            <label for="frequency_unit">Frequency Unit:</label>
+            {{ form.frequency_unit }}
 
-    <button type="submit">Search</button>
-</form>
+            <!-- Hidden fields for coordinates (updated by the map) -->
+            <input type="hidden" id="id_ne_lat" name="ne_lat">
+            <input type="hidden" id="id_ne_lng" name="ne_lng">
+            <input type="hidden" id="id_sw_lat" name="sw_lat">
+            <input type="hidden" id="id_sw_lng" name="sw_lng">
+
+            <!-- Hidden fields for map center and zoom level -->
+            <input type="hidden" id="id_map_center_lat" name="map_center_lat">
+            <input type="hidden" id="id_map_center_lng" name="map_center_lng">
+            <input type="hidden" id="id_map_zoom" name="map_zoom">
+
+            <button type="submit">Search</button>
+        </form>
+
         <!-- Map container -->
         <div id="map-container">
             <div id="map"></div>
@@ -136,36 +144,36 @@
     </div>
     {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-    // Initialize the map with saved state or defaults
-    var mapCenterLat = parseFloat("{{ form.map_center_lat.value|default:config.NE_LAT }}");
-    var mapCenterLng = parseFloat("{{ form.map_center_lng.value|default:config.NE_LNG }}");
-    var mapZoom = parseFloat("{{ form.map_zoom.value|default:13 }}");
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map with saved state or defaults
+        var mapCenterLat = parseFloat("{{ form.map_center_lat.value|default:config.NE_LAT }}");
+        var mapCenterLng = parseFloat("{{ form.map_center_lng.value|default:config.NE_LNG }}");
+        var mapZoom = parseFloat("{{ form.map_zoom.value|default:13 }}");
 
-    var map = L.map('map').setView([mapCenterLat, mapCenterLng], mapZoom);
+        var map = L.map('map').setView([mapCenterLat, mapCenterLng], mapZoom);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-    // Update hidden fields when the map is moved or zoomed
-    map.on('moveend', function() {
-        var center = map.getCenter();
-        document.getElementById('id_map_center_lat').value = center.lat;
-        document.getElementById('id_map_center_lng').value = center.lng;
-        document.getElementById('id_map_zoom').value = map.getZoom();
+        // Update hidden fields when the map is moved or zoomed
+        map.on('moveend', function() {
+            var center = map.getCenter();
+            document.getElementById('id_map_center_lat').value = center.lat;
+            document.getElementById('id_map_center_lng').value = center.lng;
+            document.getElementById('id_map_zoom').value = map.getZoom();
 
-        var bounds = map.getBounds();
-        document.getElementById('id_ne_lat').value = bounds.getNorthEast().lat;
-        document.getElementById('id_ne_lng').value = bounds.getNorthEast().lng;
-        document.getElementById('id_sw_lat').value = bounds.getSouthWest().lat;
-        document.getElementById('id_sw_lng').value = bounds.getSouthWest().lng;
-    });
+            var bounds = map.getBounds();
+            document.getElementById('id_ne_lat').value = bounds.getNorthEast().lat;
+            document.getElementById('id_ne_lng').value = bounds.getNorthEast().lng;
+            document.getElementById('id_sw_lat').value = bounds.getSouthWest().lat;
+            document.getElementById('id_sw_lng').value = bounds.getSouthWest().lng;
+        });
 
-    map.on('zoomend', function() {
-        document.getElementById('id_map_zoom').value = map.getZoom();
-    });
-</script>
+        map.on('zoomend', function() {
+            document.getElementById('id_map_zoom').value = map.getZoom();
+        });
+    </script>
 </body>
 </html>

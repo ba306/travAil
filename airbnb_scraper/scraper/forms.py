@@ -11,6 +11,13 @@ class SearchForm(forms.Form):
     ne_lng = forms.FloatField(widget=forms.HiddenInput())
     sw_lat = forms.FloatField(widget=forms.HiddenInput())
     sw_lng = forms.FloatField(widget=forms.HiddenInput())
-    map_center_lat = forms.FloatField(widget=forms.HiddenInput())  # New field
-    map_center_lng = forms.FloatField(widget=forms.HiddenInput())  # New field
-    map_zoom = forms.FloatField(widget=forms.HiddenInput())        # New field
+    map_center_lat = forms.FloatField(widget=forms.HiddenInput())
+    map_center_lng = forms.FloatField(widget=forms.HiddenInput())
+    map_zoom = forms.FloatField(widget=forms.HiddenInput())
+    frequency_interval = forms.IntegerField(min_value=1, label="Frequency Interval")
+    frequency_unit = forms.ChoiceField(choices=[
+        ('minutes', 'Minutes'),
+        ('hours', 'Hours'),
+        ('days', 'Days'),
+        ('weeks', 'Weeks'),
+    ], label="Frequency Unit")
