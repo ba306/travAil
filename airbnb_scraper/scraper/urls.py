@@ -1,8 +1,8 @@
-# airbnb_scraper/urls.py
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from scraper import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('scraper.urls')),  # Include the scraper app's URLs
+    path('', views.index, name='index'),
 ]
