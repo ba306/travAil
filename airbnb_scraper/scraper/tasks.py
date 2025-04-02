@@ -11,7 +11,6 @@ from threading import Lock
 logger = logging.getLogger(__name__)
 task_lock = Lock()
 
-
 @shared_task
 def periodic_scrape(search_id):
     with task_lock:
@@ -53,22 +52,17 @@ def periodic_scrape(search_id):
 
                 normalized_current_urls = [normalize_url(url) for url in current_urls]
 
-                # Get previous results
+                # Get previous results ONLY for this search
                 previous_results = SearchResult.objects.filter(
                     search=search
                 ).values_list('normalized_url', flat=True)
-                print(f"Previous urls: {previous_results}")
 
-                # Find new URLs
+                # Find new URLs (only compared against this search's results)
                 new_urls = [url for url in normalized_current_urls if url not in previous_results]
-                print(f"New urls: {new_urls}")
 
                 # Save new results
                 for url, normalized_url in zip(current_urls, normalized_current_urls):
-                    if not SearchResult.objects.filter(
-                            search=search,
-                            normalized_url=normalized_url
-                    ).exists():
+                    if normalized_url in new_urls:
                         SearchResult.objects.create(
                             search=search,
                             url=url,
@@ -87,19 +81,10 @@ def periodic_scrape(search_id):
                     'sw_lng': search.sw_lng,
                 }
 
-                # Send email with search parameters
+                # Send email only if new URLs found
                 sender_email, sender_password = load_credentials()
-                if sender_email and sender_password:
-                    if new_urls:
-                        send_email(new_urls, sender_email, sender_password, search.email, search_params)
-                    else:
-                        send_email(
-                            ["No new listings were found during the latest search."],
-                            sender_email,
-                            sender_password,
-                            search.email,
-                            search_params
-                        )
+                if sender_email and sender_password and new_urls:
+                    send_email(new_urls, sender_email, sender_password, search.email, search_params)
 
             finally:
                 driver.quit()
