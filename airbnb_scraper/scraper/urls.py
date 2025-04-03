@@ -1,8 +1,9 @@
-from django.contrib import admin
 from django.urls import path
-from scraper import views
+from . import views
+
+app_name = 'scraper'  # Add this namespace
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.index, name='index'),
+    path('terminate_search/<int:search_id>/', views.terminate_search, name='terminate_search'),
 ]

@@ -1,12 +1,14 @@
 import smtplib
+import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+logger = logging.getLogger(__name__)
 
-def send_email(new_urls, sender_email, sender_password, receiver_email, search_params=None):
+def send_email(new_urls, sender_email, sender_password, receiver_email, search_params=None, search_id=None):
     subject = "New Airbnb Listings Found"
 
-    # Format the email body with search parameters and listings
+    # Build the email body
     body = "Search Parameters:\n"
     if search_params:
         body += f"- Dates: {search_params['start_date']} to {search_params['end_date']}\n"
@@ -16,22 +18,36 @@ def send_email(new_urls, sender_email, sender_password, receiver_email, search_p
 
     body += "\nNew Listings:\n"
     if new_urls:
-        body += "\n".join(new_urls)
+        body += "\n".join(new_urls) + "\n"
     else:
-        body += "No new listings found."
+        body += "No new listings found.\n"
 
-    msg = MIMEMultipart()
+    # Create MIME message
+    msg = MIMEMultipart('alternative')
     msg['From'] = sender_email
     msg['To'] = receiver_email
     msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'plain'))
+
+    # Plain text version (shows full URL)
+    text_body = body
+    if search_id:
+        termination_link = f"http://localhost:8000/terminate_search/{search_id}/"
+        text_body += f"\nTo stop receiving updates for this search, click here: {termination_link}"
+
+    # HTML version (hides URL behind "click here")
+    html_body = body.replace('\n', '<br>')
+    if search_id:
+        html_body += f'<br><br>To stop receiving updates for this search, <a href="{termination_link}" style="color: #0066cc; text-decoration: underline;">click here</a>'
+
+    # Attach both versions
+    msg.attach(MIMEText(text_body, 'plain'))
+    msg.attach(MIMEText(f"<html><body>{html_body}</body></html>", 'html'))
 
     try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, msg.as_string())
-        server.quit()
-        print("Email sent successfully.")
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, receiver_email, msg.as_string())
+        logger.info(f"Email sent to {receiver_email}")
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        logger.error(f"Failed to send email: {e}")
