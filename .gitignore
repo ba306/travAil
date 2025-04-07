@@ -181,3 +181,11 @@ e_sif.json
 # html and pictures
 screenshot.png
 page_source.html
+
+# migrations
+airbnb_scraper/scraper/migrations/
+
+# DS
+.DS_Store
+
+
