@@ -113,3 +113,4 @@ def terminate_search(request, search_id):
         logger.warning(f"Search ID {search_id} not found - may have already been terminated")
         messages.error(request, "Search not found or already terminated")
         return redirect(reverse("scraper:index"))
+

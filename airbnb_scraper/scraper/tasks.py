@@ -12,6 +12,7 @@ from urllib.parse import urlparse, urlencode, urlunparse
 logger = logging.getLogger(__name__)
 task_lock = Lock()
 
+
 @shared_task
 def periodic_scrape(search_id):
     with task_lock:
@@ -20,21 +21,21 @@ def periodic_scrape(search_id):
             start_date_str = search.start_date.strftime('%Y-%m-%d')
             end_date_str = search.end_date.strftime('%Y-%m-%d')
 
-            # Construct search URL
+            # Construct search URL (same as before)
             monthly_length = (search.end_date.year - search.start_date.year) * 12 + (
                     search.end_date.month - search.start_date.month)
             search_url = f"https://www.airbnb.com/s/United-States/homes?refinement_paths%5B%5D=%2Fhomes&flexible_trip_lengths%5B%5D=one_week&monthly_start_date={start_date_str}&monthly_end_date={end_date_str}&price_filter_input_type=0&channel=EXPLORE&query=United%20States&place_id=ChIJCzYy5IS16lQRQrfeQ5K5Oxw&date_picker_type=calendar&source=structured_search_input_header&search_type=user_map_move&search_mode=regular_search&price_filter_num_nights=7&ne_lat={search.ne_lat}&ne_lng={search.ne_lng}&sw_lat={search.sw_lat}&sw_lng={search.sw_lng}&zoom=14.443235035125602&zoom_level=14.443235035125602&search_by_map=true&monthly_length={monthly_length}&checkin={start_date_str}&checkout={end_date_str}&adults={search.num_adults}&price_max={search.max_price}"
 
             driver = set_up_driver()
             try:
-                # Scrape listings
-                current_urls = scrape_listings(driver, search_url, start_date_str, end_date_str)
+                # Scrape listings (now returns list of dicts)
+                listings_data = scrape_listings(driver, search_url, start_date_str, end_date_str)
 
-                if not current_urls:
+                if not listings_data:
                     sender_email, sender_password = load_credentials()
                     if sender_email and sender_password:
                         send_email(
-                            ["No listings found for the given search parameters."],
+                            [],
                             sender_email,
                             sender_password,
                             search.email,
@@ -47,12 +48,13 @@ def periodic_scrape(search_id):
                                 'ne_lng': search.ne_lng,
                                 'sw_lat': search.sw_lat,
                                 'sw_lng': search.sw_lng,
-                            }
+                            },
+                            search.id
                         )
                     return
 
                 # Normalize URLs for comparison
-                normalized_current_urls = [normalize_url(url) for url in current_urls]
+                normalized_urls = [normalize_url(item['url']) for item in listings_data]
 
                 # Get previous results
                 previous_results = SearchResult.objects.filter(
@@ -60,21 +62,25 @@ def periodic_scrape(search_id):
                 ).values_list('normalized_url', flat=True)
 
                 # Find new URLs
-                new_urls = [url for url in normalized_current_urls if url not in previous_results]
+                new_urls = [url for url in normalized_urls if url not in previous_results]
 
                 # Save new results (with normalized URLs for comparison)
-                for url, normalized_url in zip(current_urls, normalized_current_urls):
+                for data in listings_data:
+                    normalized_url = normalize_url(data['url'])
                     if normalized_url in new_urls:
                         SearchResult.objects.create(
                             search=search,
-                            url=url,  # Store original URL
-                            normalized_url=normalized_url  # Store normalized version for comparison
+                            url=data['url'],  # Store original URL
+                            normalized_url=normalized_url  # Store normalized version
                         )
 
-                # Prepare full URLs with search parameters for email
-                full_urls = []
-                for url in current_urls:
-                    parsed = urlparse(url)
+                # Prepare listing data for email
+                email_listings = []
+                for data in listings_data:
+                    if normalize_url(data['url']) not in new_urls:
+                        continue
+
+                    parsed = urlparse(data['url'])
                     query_params = {
                         'check_in': start_date_str,
                         'check_out': end_date_str,
@@ -90,7 +96,21 @@ def periodic_scrape(search_id):
                         urlencode(query_params),
                         parsed.fragment
                     ))
-                    full_urls.append(full_url)
+
+                    # Create a short display URL
+                    path_parts = parsed.path.split('/')
+                    if len(path_parts) > 2 and path_parts[1] == 'rooms':
+                        short_url = f"{parsed.netloc}/rooms/{path_parts[2]}"
+                    else:
+                        short_url = parsed.netloc + parsed.path
+
+                    email_listings.append({
+                        'full_url': full_url,
+                        'short_url': short_url,
+                        'price': data['price'],
+                        'rating': data.get('rating'),
+                        'review_count': data.get('review_count')
+                    })
 
                 # Prepare search parameters for email
                 search_params = {
@@ -104,15 +124,15 @@ def periodic_scrape(search_id):
                     'sw_lng': search.sw_lng,
                 }
 
-                # Send email with full URLs if new listings found
+                # Send email with full listings info if new listings found
                 sender_email, sender_password = load_credentials()
-                if sender_email and sender_password and new_urls:
-                    send_email(full_urls, sender_email, sender_password, search.email, search_params, search.id)
+                if sender_email and sender_password:
+                    send_email(email_listings, sender_email, sender_password, search.email, search_params, search.id)
 
             finally:
                 driver.quit()
 
-            # Reschedule if needed
+            # Reschedule if needed (same as before)
             if search.frequency_interval and search.frequency_unit:
                 if search.frequency_unit == 'minutes':
                     schedule = timedelta(minutes=search.frequency_interval)
