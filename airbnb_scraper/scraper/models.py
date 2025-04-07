@@ -15,7 +15,8 @@ class Search(models.Model):
     frequency_interval = models.IntegerField(default=1)
     frequency_unit = models.CharField(max_length=10, default='hours')
     task_id = models.CharField(max_length=255, blank=True, null=True)
-
+    min_rating = models.FloatField(null=True, blank=True)
+    min_reviews = models.IntegerField(null=True, blank=True)
     def __str__(self):
         return f"Search {self.id} by {self.email}"
 

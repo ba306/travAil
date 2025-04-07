@@ -16,6 +16,10 @@ def send_email(new_listings, sender_email, sender_password, receiver_email, sear
         text_body += f"- Dates: {search_params['start_date']} to {search_params['end_date']}\n"
         text_body += f"- Adults: {search_params['num_adults']}\n"
         text_body += f"- Max Price: €{search_params['max_price']}\n"
+        if search_params.get('min_rating'):
+            text_body += f"- Minimum Rating: {search_params['min_rating']}★\n"
+        if search_params.get('min_reviews'):
+            text_body += f"- Minimum Reviews: {search_params['min_reviews']}\n"
         text_body += f"- Location Bounds: NE({search_params['ne_lat']}, {search_params['ne_lng']}), SW({search_params['sw_lat']}, {search_params['sw_lng']})\n"
 
     text_body += "\nNew Listings:\n"

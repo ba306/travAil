@@ -26,6 +26,7 @@ def index(request):
         'map_center_lat': config.NE_LAT,
         'map_center_lng': config.NE_LNG,
         'map_zoom': 13,
+        'min_rating': None,
     }
 
     # Check for termination confirmation
@@ -66,6 +67,8 @@ def index(request):
                 sw_lng=form.cleaned_data['sw_lng'],
                 frequency_interval=form.cleaned_data['frequency_interval'],
                 frequency_unit=form.cleaned_data['frequency_unit'],
+                min_rating=form.cleaned_data['min_rating'],
+                min_reviews=form.cleaned_data['min_reviews'],
             )
             search.save()
 

@@ -21,3 +21,16 @@ class SearchForm(forms.Form):
         ('days', 'Days'),
         ('weeks', 'Weeks'),
     ], label="Frequency Unit")
+    min_rating = forms.FloatField(
+        required=False,
+        min_value=0,
+        max_value=5,
+        label="Minimum Rating",
+        widget=forms.NumberInput(attrs={'step': '0.1'})
+    )
+    min_reviews = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label="Minimum Reviews",
+        widget=forms.NumberInput(attrs={'step': '1'})
+    )

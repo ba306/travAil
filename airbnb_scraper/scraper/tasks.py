@@ -29,8 +29,8 @@ def periodic_scrape(search_id):
             driver = set_up_driver()
             try:
                 # Scrape listings (now returns list of dicts)
-                listings_data = scrape_listings(driver, search_url, start_date_str, end_date_str)
-
+                listings_data = scrape_listings(driver, search_url, start_date_str, end_date_str,
+                                                search.min_rating, search.min_reviews)
                 if not listings_data:
                     sender_email, sender_password = load_credentials()
                     if sender_email and sender_password:
