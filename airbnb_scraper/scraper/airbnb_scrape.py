@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException  # Import TimeoutException
 import time
+import re
 
 def set_up_driver():
     options = webdriver.ChromeOptions()
@@ -23,11 +24,12 @@ def set_up_driver():
     driver = webdriver.Chrome(options=options)
     return driver
 
+
 def scrape_listings(driver, url, start_date, end_date):
     driver.get(url)
 
     try:
-        # Wait for the listings to load (increase timeout to 30 seconds)
+        # Wait for the listings to load
         wait = WebDriverWait(driver, 30)
         wait.until(EC.presence_of_element_located((By.XPATH, "//div[@itemprop='itemListElement']")))
 
@@ -47,22 +49,60 @@ def scrape_listings(driver, url, start_date, end_date):
             if last_count == len_of_page:
                 match = True
 
-        # Extract listing URLs
-        listings = driver.find_elements(By.XPATH, "//a[@aria-labelledby and contains(@href, '/rooms/')]")
-        urls = [listing.get_attribute('href') for listing in listings]
+        # Extract listing data
+        listings = driver.find_elements(By.XPATH, "//div[@itemprop='itemListElement']")
+        listings_data = []
 
-        # Filter URLs by check-in and check-out dates
-        matching_urls = [url for url in urls if start_date in url and end_date in url]
+        for listing in listings:
+            try:
+                # Get URL
+                url_element = listing.find_element(By.XPATH, ".//a[@aria-labelledby and contains(@href, '/rooms/')]")
+                url = url_element.get_attribute('href')
 
-        # Check if there are no matching URLs
-        if not matching_urls:
+                # Skip if dates don't match
+                if start_date not in url or end_date not in url:
+                    continue
+
+                # Extract price
+                price_element = listing.find_element(
+                    By.XPATH,
+                    ".//span[@aria-hidden='true' and contains(text(), '€')]"
+                )
+                price = price_element.text.strip()
+
+                # Extract rating and review count
+                rating = None
+                review_count = None
+                try:
+                    review_element = listing.find_element(
+                        By.XPATH,
+                        ".//span[@aria-hidden='true' and contains(text(), '(')]"
+                    )
+                    review_scores = re.search(r"([\d.]+)\s+\((\d+)\)", review_element.text)
+                    if review_scores:
+                        rating = float(review_scores.group(1))
+                        review_count = int(review_scores.group(2))
+                except:
+                    pass  # Not all listings have reviews
+
+                listings_data.append({
+                    'url': url,
+                    'price': price,
+                    'rating': rating,
+                    'review_count': review_count
+                })
+
+            except Exception as e:
+                logger.error(f"Error processing listing: {e}")
+                continue
+
+        if not listings_data:
             print("No listings found for the given dates.")
             return []
 
-        return matching_urls
+        return listings_data
 
     except TimeoutException:
-        # Log the page source or take a screenshot for debugging
         with open("page_source.html", "w", encoding="utf-8") as f:
             f.write(driver.page_source)
         driver.save_screenshot("screenshot.png")
