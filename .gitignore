@@ -192,10 +192,11 @@ airbnb_scraper/scraper/migrations/
 .DS_Store
 **/.DS_Store
 
-# .idea
-.idea
+# folders
+scripts/
+.idea/
 
 # .rdb
-.rdb
+dump.rdb
 
 
